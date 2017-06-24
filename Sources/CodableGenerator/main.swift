@@ -1,18 +1,18 @@
 import Foundation
 
-guard CommandLine.arguments.count > 2 else {
+guard CommandLine.arguments.count > 1 else {
     print("No input!")
     exit(1)
 }
 
 for i in 2..<CommandLine.arguments.count {
     let input = URL.init(fileURLWithPath: CommandLine.arguments[i])
-    let jsonData = try Data.init(contentsOf: input)
+    let inputFilename = input.lastPathComponent.components(separatedBy: ".")[0]
     
-    let json = try JSONSerialization.jsonObject(with: jsonData, options: .allowFragments)
+    let content = try Data.init(contentsOf: input)
+    let json = try JSONSerialization.jsonObject(with: content, options: .allowFragments)
     
-    var code = StructComponents(name: "TestJSON")
+    var code = StructComponents(name: inputFilename)
     code.parse(json: json)
-    try code.code.write(to: input.deletingPathExtension().appendingPathExtension("swift"), atomically: true, encoding: .utf8)
+    try code.code.write(to: input.deletingLastPathComponent().appendingPathComponent(inputFilename).appendingPathExtension("swift"), atomically: true, encoding: .utf8)
 }
-
