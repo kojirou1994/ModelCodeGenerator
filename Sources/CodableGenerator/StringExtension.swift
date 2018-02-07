@@ -11,20 +11,20 @@ extension String {
     
     var firstLowercased: String {
         var tmp = self
-        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp.substring(to: tmp.index(after: tmp.startIndex)).lowercased())
+        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp[...tmp.startIndex].lowercased())
         return tmp
     }
     
     var firstUppercased: String {
         var tmp = self
-        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp.substring(to: tmp.index(after: tmp.startIndex)).uppercased())
+        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp[...tmp.startIndex].uppercased())
         return tmp
     }
     
     private func cammelcased() -> String {
         var result = ""
         var transform = false
-        for cha in self.characters {
+        for cha in self {
             if cha == "_" {
                 transform = true
             } else if transform {

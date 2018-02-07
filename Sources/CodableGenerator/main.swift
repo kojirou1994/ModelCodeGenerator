@@ -5,7 +5,7 @@ guard CommandLine.arguments.count > 1 else {
     exit(1)
 }
 
-for i in 2..<CommandLine.arguments.count {
+for i in 1..<CommandLine.arguments.count {
     let input = URL.init(fileURLWithPath: CommandLine.arguments[i])
     let inputFilename = input.lastPathComponent.components(separatedBy: ".")[0]
     

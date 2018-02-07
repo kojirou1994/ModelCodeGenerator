@@ -93,7 +93,7 @@ struct StructComponents {
 //            print("It's a dictionary. ")
             dic.forEach({ (kv) in
                 let key = kv.key
-                let transformedKey = key.lowerCamelcased()
+                let transformedKey = key.lowerCamelcased().replacingOccurrences(of: "-", with: "_")
                 let value = kv.value
                 self.variables[transformedKey] = ObjectType.init(key: key, value: value)
                 self.codingKeys[transformedKey] = key
