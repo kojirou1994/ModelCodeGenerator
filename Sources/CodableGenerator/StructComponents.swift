@@ -1,11 +1,11 @@
-//
-//  StructComponents.swift
-//  ObjectMapper
-//
-//  Created by 王宇 on 2017/6/24.
-//
-
 import Foundation
+
+struct GeneratorOptions {
+    /*
+     sortedProperties
+     convertToCamelCase
+     */
+}
 
 indirect enum ObjectType {
     
@@ -18,20 +18,33 @@ indirect enum ObjectType {
     case array(type: ObjectType)
     
     init(key: String, value: Any) {
-        if let _ = value as? String {
+        switch value {
+        case _ as String:
             self = .string
-        } else if let _ = value as? Bool {
-            self = .bool
-        } else if let _ = value as? Int {
-            self = .integer
-        } else if let _ = value as? Double {
-            self = .double
-        } else if let _ = value as? NSNull {
+        case let number as NSNumber:
+            if number.className == "__NSCFBoolean" {
+                self = .bool
+            } else {
+                switch number {
+                case _ as Int:
+                    self = .integer
+                case _ as Double :
+                    self = .double
+                default:
+                    print("The number is not int or float: \(number)")
+                    fatalError()
+                }
+            }
+        case _ as NSNull:
             self = .null
-        } else if let arr = value as? [Any], arr.count > 0 {
-            let t = ObjectType(key: key, value: arr[0])
-            self = .array(type: t)
-        } else {
+        case let arr as [Any]:
+            if arr.count == 0 {
+                self = .array(type: .string)
+            } else {
+                let t = ObjectType(key: key, value: arr[0])
+                self = .array(type: t)
+            }
+        default:
             let structName = key.upperCamelcased()
             var str = StructComponents(name: structName)
             str.parse(json: value)
@@ -62,18 +75,18 @@ indirect enum ObjectType {
         var result = ""
         switch self {
         case .custom(key: _, code: let components):
-            result.append("\n\(components.code.addIndent())\n")
+            result.append("\n\(components.structCode.addIndent())\n")
         case .array(type: let element):
             switch element {
             case .custom(key: _, code: let components):
-                result.append("\n\(components.code.addIndent())\n")
+                result.append("\n\(components.structCode.addIndent())\n")
             default:
                 break
             }
         default:
             break
         }
-        return result + "\n    var \(variable): \(self.type)\n"
+        return result + "\n    var \(variable): \(self.type)"
     }
 }
 
@@ -98,22 +111,24 @@ struct StructComponents {
                 self.variables[transformedKey] = ObjectType.init(key: key, value: value)
                 self.codingKeys[transformedKey] = key
             })
+        } else if let array = json as? [Any] {
+            if array.count == 0 {
+                
+            } else {
+                
+            }
         } else {
-            print("JSON Array not supported!")
+            print("Unsuppoorted format: \(json)")
+            dump(json)
             exit(1)
         }
     }
-    
-    var code: String {
-        let vars = variables.reduce("") { (result, kv) -> String in
-            return result + kv.value.generateCode(variable: kv.key)
-        }
-        
-        let keys: String
+
+    private var codingKeysCode: String {
         if codingKeys.count == 0 {
-            keys = ""
+            return ""
         } else {
-            keys = """
+            return """
                 private enum CodingKeys: String, CodingKey {
                 \(codingKeys.map {kv -> String in
                 if kv.key == kv.value {
@@ -123,13 +138,29 @@ struct StructComponents {
                 }
                 }.joined(separator: "\n"))
                 }
-                """.addIndent()
+                """
         }
-        
-        return """
-        struct \(name): \(protocols.joined(separator: ", ")) {
-        \(vars)
-        \(keys)
+    }
+    let sorted = true
+    private var variablesCode: String {
+        let keys: [String]
+        if sorted {
+            keys = variables.keys.sorted()
+        } else {
+            keys = Array(variables.keys)
+        }
+        var code = ""
+        for key in keys {
+            code += variables[key]!.generateCode(variable: key)
+        }
+        return code
+    }
+    
+    public var structCode: String {
+        """
+        public struct \(name): \(protocols.joined(separator: ", ")) {
+        \(variablesCode)
+        \(codingKeysCode)
         
         }
         """

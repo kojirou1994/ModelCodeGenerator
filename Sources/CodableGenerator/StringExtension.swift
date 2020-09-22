@@ -1,24 +1,19 @@
-//
-//  StringExtension.swift
-//  ObjectMapper
-//
-//  Created by 王宇 on 2017/6/24.
-//
-
 import Foundation
 
 extension String {
     
     var firstLowercased: String {
-        var tmp = self
-        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp[...tmp.startIndex].lowercased())
-        return tmp
+        if isEmpty {
+            return ""
+        }
+        return first!.lowercased() + dropFirst()
     }
     
     var firstUppercased: String {
-        var tmp = self
-        tmp.replaceSubrange(tmp.startIndex..<tmp.index(after: tmp.startIndex), with: tmp[...tmp.startIndex].uppercased())
-        return tmp
+        if isEmpty {
+            return ""
+        }
+        return first!.uppercased() + dropFirst()
     }
     
     private func cammelcased() -> String {
@@ -39,15 +34,15 @@ extension String {
     
     /// long_path -> longPath
     func lowerCamelcased() -> String {
-        return cammelcased().firstLowercased
+        cammelcased().firstLowercased
     }
     
     /// long_path -> LongPath
     func upperCamelcased() -> String {
-        return cammelcased().firstUppercased
+        cammelcased().firstUppercased
     }
     
     func addIndent() -> String {
-        return self.components(separatedBy: "\n").map({ "    "+$0 }).joined(separator: "\n")
+        self.components(separatedBy: "\n").map({ "    "+$0 }).joined(separator: "\n")
     }
 }

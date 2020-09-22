@@ -14,5 +14,5 @@ for i in 1..<CommandLine.arguments.count {
     
     var code = StructComponents(name: inputFilename)
     code.parse(json: json)
-    try code.code.write(to: input.deletingLastPathComponent().appendingPathComponent(inputFilename).appendingPathExtension("swift"), atomically: true, encoding: .utf8)
+    try code.structCode.write(to: input.deletingLastPathComponent().appendingPathComponent(inputFilename).appendingPathExtension("swift"), atomically: true, encoding: .utf8)
 }
