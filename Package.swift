@@ -3,15 +3,21 @@
 import PackageDescription
 
 let package = Package(
-  name: "CodableGenerator",
+  name: "ModelCodeGenerator",
   products: [
-
+    .library(name: "ModelCodeGenerator", targets: ["ModelCodeGenerator"])
   ],
   dependencies: [
   ],
   targets: [
     .target(
-      name: "CodableGenerator",
+      name: "ModelCodeGenerator",
       dependencies: []),
+    .target(
+      name: "ModelCodeGeneratorCli",
+      dependencies: ["ModelCodeGenerator"]),
+    .testTarget(
+      name: "ModelCodeGeneratorTests",
+      dependencies: ["ModelCodeGenerator"]),
   ]
 )

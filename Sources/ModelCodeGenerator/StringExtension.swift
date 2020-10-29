@@ -3,17 +3,17 @@ import Foundation
 extension String {
 
   var firstLowercased: String {
-    if isEmpty {
+    guard let firstC = first?.lowercased() else {
       return ""
     }
-    return first!.lowercased() + dropFirst()
+    return firstC + dropFirst()
   }
 
   var firstUppercased: String {
-    if isEmpty {
+    guard let firstC = first?.uppercased() else {
       return ""
     }
-    return first!.uppercased() + dropFirst()
+    return firstC + dropFirst()
   }
 
   private func cammelcased() -> String {
@@ -40,9 +40,5 @@ extension String {
   /// long_path -> LongPath
   func upperCamelcased() -> String {
     cammelcased().firstUppercased
-  }
-
-  func addIndent() -> String {
-    self.components(separatedBy: "\n").map({ "    "+$0 }).joined(separator: "\n")
   }
 }
