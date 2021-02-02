@@ -44,9 +44,9 @@ extension ModelCodeGenerator {
       case convertFromSnakeCase
     }
 
+    public var rootName: String
     public var sortedProperty: Bool
     public var variableNameStrategy: VariableNameStrategy
-    public var rootName: String
     public var nestedObject: Bool
     public var variable: Bool
     public var indentation: Indentation
@@ -61,28 +61,44 @@ extension ModelCodeGenerator {
   }
 }
 
+enum ModelCodeGeneratorError: Error {
+  case emptyArray
+  case wrongRootType
+}
+
 extension ModelCodeGenerator {
 
   func parseStruct(name: String, value: Any) throws -> StructComponents {
-    var properties: [String: Property] = .init()
+    var properties = [PropertyMeta]()
+
+    func parse(dictionary: [String: Any]) throws {
+      let propertyKeys = options.sortedProperty ? dictionary.keys.sorted() : Array(dictionary.keys)
+      try propertyKeys.forEach { originalKey in
+        var transformedKey = variableName(for: originalKey)
+        while properties.contains(where: {$0.transformedKey == transformedKey}) {
+          transformedKey.append("_")
+        }
+
+        let value = dictionary[originalKey].unsafelyUnwrapped
+
+        properties.append(.init(originalKey: originalKey,
+                                transformedKey: transformedKey,
+                                isKeyTransformed: originalKey != transformedKey,
+                                property: try parseProperty(value, for: originalKey)))
+      }
+    }
+
     if let dic = value as? [String: Any] {
-      //            print("It's a dictionary. ")
-      try dic.forEach({ (kv) in
-        let key = kv.key
-//        let transformedKey = key.lowerCamelcased().replacingOccurrences(of: "-", with: "_")
-        let value = kv.value
-        properties[key] = try parseProperty(value, for: key)
-//        codingKeys[transformedKey] = key
-      })
+      try parse(dictionary: dic)
     } else if let array = value as? [Any] {
-      if array.count == 0 {
-
+      if let firstElement = array.first {
+        return try parseStruct(name: name, value: firstElement)
       } else {
-
+        throw ModelCodeGeneratorError.emptyArray
       }
     } else {
-      dump(value)
-      fatalError("Unsuppoorted format: \(value)")
+      assertionFailure("Unsuppoorted format: \(value)")
+      throw ModelCodeGeneratorError.wrongRootType
     }
 
     return .init(name: name, properties: properties)
@@ -148,12 +164,19 @@ extension ModelCodeGenerator {
   }
 
   private func variableName(for string: String) -> String {
-    switch options.variableNameStrategy {
-    case .keepOriginal:
-      return string
-    case .convertFromSnakeCase:
-      return string.lowerCamelcased()
+
+    var result = string.filter { !$0.isSymbol || $0 == "_" }
+
+    if options.variableNameStrategy == .convertFromSnakeCase {
+      result = result.lowerCamelcased()
     }
+    if result.isEmpty || result.allSatisfy({$0.isSymbol}) {
+      result = "fixInvalidJSONKey"
+    }
+    if result.first!.isNumber {
+      result = "_" + result
+    }
+    return result
   }
 
   private func nestedObjectName(for key: String) -> String {
@@ -188,40 +211,37 @@ extension ModelCodeGenerator {
     writeAccessControl()
     result.append("struct \(meta.name): \(Set(options.conformingProtocols).sorted().joined(separator: ", ")) {\n")
 
-    let propertyKeys = options.sortedProperty ? meta.properties.keys.sorted() : Array(meta.properties.keys)
-
-    var needGenCodingKeys = false
-
-    propertyKeys.forEach { propertyKey in
-      let property = meta.properties[propertyKey].unsafelyUnwrapped
-
-      if !needGenCodingKeys, variableName(for: propertyKey) != propertyKey {
-        needGenCodingKeys = true
-      }
+    meta.properties.forEach { property in
 
       writeIndent(count: level + 1)
       writeAccessControl()
       result.append(options.variable ? "var" : "let")
       result.append(" ")
-      result.append(variableName(for: propertyKey))
+      result.append(property.transformedKey)
       result.append(": ")
-      result.append(propertyName(for: property))
+      result.append(propertyName(for: property.property))
 
       writeNewLine()
 
-      if case .custom(_, let nestedMeta) = property.type {
-        let fixedNestedMeta = StructComponents(name: propertyName(for: property), properties: nestedMeta.properties)
+      if case .custom(_, let nestedMeta) = property.property.type {
+        let fixedNestedMeta = StructComponents(name: propertyName(for: property.property), properties: nestedMeta.properties)
         result.append(writeStructCode(level: level + 1, meta: fixedNestedMeta))
       }
     }
 
-    if (needGenCodingKeys || options.alwaysCodingKeys) && !propertyKeys.isEmpty {
+    let needGenCodingKeys = meta.properties.contains { $0.isKeyTransformed }
+
+    if (needGenCodingKeys || options.alwaysCodingKeys) && !meta.properties.isEmpty {
       writeIndent(count: level + 1)
       result.append("private enum CodingKeys: String, CodingKey {")
       writeNewLine()
-      propertyKeys.forEach { propertyKey in
+      meta.properties.forEach { property in
         writeIndent(count: level + 2)
-        result.append("case \(variableName(for: propertyKey)) = \"\(propertyKey)\"")
+        // TODO: original key escaped
+        result.append("case \(property.transformedKey)")
+        if property.isKeyTransformed {
+          result.append(" = \"\(property.originalKey)\"")
+        }
         writeNewLine()
       }
       writeIndent(count: level + 1)

@@ -10,13 +10,15 @@ struct Property {
   let type: ObjectType
 }
 
+struct PropertyMeta {
+  let originalKey: String
+  let transformedKey: String
+  let isKeyTransformed: Bool
+  let property: Property
+}
+
 struct StructComponents {
   let name: String
-  let properties: [String: Property]
-  struct PropertyMeta {
-    let originalKey: String
-    let transformedKey: String
-    let isKeyTransformed: Bool
-    let property: Property
-  }
+  let properties: [PropertyMeta]
+
 }

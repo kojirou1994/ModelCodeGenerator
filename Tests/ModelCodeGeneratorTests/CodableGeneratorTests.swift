@@ -7,7 +7,7 @@ final class ModelCodeGeneratorTests: XCTestCase {
                                               variableNameStrategy: .convertFromSnakeCase,
                                               rootName: "Model", nestedObject: true, variable: true,
                                               indentation: .spaces(width: 2), accessControl: .internal,
-                                              alwaysCodingKeys: true, conformingProtocols: ["Codable"]))
+                                              alwaysCodingKeys: false, conformingProtocols: ["Codable"]))
     let stru = try gen.parseStruct(name: "Root", value: [
       "name": "Bob",
       "age": 10,
