@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "precondition",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kojirou1994/Precondition.git",
+      "state" : {
+        "revision" : "8bfd454560f5bfafe9bf0db3e929ef65ba189400",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "f3c9084a71ef4376f2fabbdf1d3d90a49f1fabdb",
+        "version" : "1.1.2"
+      }
+    },
+    {
+      "identity" : "yyjson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ibireme/yyjson.git",
+      "state" : {
+        "revision" : "41069b2bcb628c7094dfe772a9cf7ca56b0c2075",
+        "version" : "0.4.0"
+      }
+    },
+    {
+      "identity" : "yyjsonencoder",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kojirou1994/YYJSONEncoder.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "82a98b65bfff01b1a8a77553fb8eb81d1f1a0d0d"
+      }
+    }
+  ],
+  "version" : 2
+}
