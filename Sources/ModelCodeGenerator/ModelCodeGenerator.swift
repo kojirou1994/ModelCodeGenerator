@@ -20,7 +20,7 @@ public struct ModelCodeGenerator {
     }
   }
 
-  func generateCode(from meta: StructComponents) throws -> String {
+  public func generateCode(from meta: StructComponents) throws -> String {
     writeStructCode(level: 0, meta: meta)
   }
 }
@@ -140,27 +140,25 @@ extension ModelCodeGenerator {
     }
   }
 
-  private func propertyName(for property: Property) -> String {
-    func typeName(for type: ObjectType) -> String {
-      switch type {
-      case .bool:
-        return "Bool"
-      case .double:
-        return "Double"
-      case .integer:
-        return "Int"
-      case .null:
-        return "NSNull"
-      case .string:
-        return "String"
-      case .uuid:
-        return "UUID"
-      case .custom(let key, _):
-        return nestedObjectName(for: key)
-      }
+  private func propertyName(for type: ObjectType) -> String {
+    switch type {
+    case .bool:
+      return "Bool"
+    case .double:
+      return "Double"
+    case .integer:
+      return "Int"
+    case .null:
+      return "NSNull"
+    case .string:
+      return "String"
+    case .uuid:
+      return "UUID"
+    case .forcedName(let name):
+      return name
+    case .custom(let key, _):
+      return nestedObjectName(for: key)
     }
-
-    return property.isArray ? "[\(typeName(for: property.type))]" : typeName(for: property.type)
   }
 
   private func variableName(for string: String) -> String {
@@ -219,12 +217,21 @@ extension ModelCodeGenerator {
       result.append(" ")
       result.append(property.transformedKey)
       result.append(": ")
-      result.append(propertyName(for: property.property))
+      if property.property.isArray {
+        result.append("[")
+      }
+      result.append(propertyName(for: property.property.type))
+      if property.property.isArray {
+        result.append("]")
+      }
+      if property.property.isOptional {
+        result.append("?")
+      }
 
       writeNewLine()
 
       if case .custom(_, let nestedMeta) = property.property.type {
-        let fixedNestedMeta = StructComponents(name: propertyName(for: property.property), properties: nestedMeta.properties)
+        let fixedNestedMeta = StructComponents(name: propertyName(for: property.property.type), properties: nestedMeta.properties)
         result.append(writeStructCode(level: level + 1, meta: fixedNestedMeta))
       }
     }
