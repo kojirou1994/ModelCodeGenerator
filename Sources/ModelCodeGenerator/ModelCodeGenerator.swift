@@ -20,7 +20,7 @@ public struct ModelCodeGenerator {
     }
   }
 
-  public func generateCode(from meta: StructComponents) throws -> String {
+  public func generateCode(from meta: ModelStructInfo) throws -> String {
     writeStructCode(level: 0, meta: meta)
   }
 }
@@ -68,21 +68,21 @@ enum ModelCodeGeneratorError: Error {
 
 extension ModelCodeGenerator {
 
-  func parseStruct(name: String, value: Any) throws -> StructComponents {
-    var properties = [PropertyMeta]()
+  func parseStruct(name: String, value: Any) throws -> ModelStructInfo {
+    var properties = [PropertyInfo]()
 
     func parse(dictionary: [String: Any]) throws {
       let propertyKeys = options.sortedProperty ? dictionary.keys.sorted() : Array(dictionary.keys)
       try propertyKeys.forEach { originalKey in
         var transformedKey = variableName(for: originalKey)
-        while properties.contains(where: {$0.transformedKey == transformedKey}) {
+        while properties.contains(where: {$0.swiftName == transformedKey}) {
           transformedKey.append("_")
         }
 
         let value = dictionary[originalKey].unsafelyUnwrapped
 
-        properties.append(.init(originalKey: originalKey,
-                                transformedKey: transformedKey,
+        properties.append(.init(originalName: originalKey,
+                                swiftName: transformedKey,
                                 isKeyTransformed: originalKey != transformedKey,
                                 property: try parseProperty(value, for: originalKey)))
       }
@@ -105,7 +105,7 @@ extension ModelCodeGenerator {
 
   }
 
-  func parseProperty(_ value: Any, for key: String) throws -> Property {
+  func parseProperty(_ value: Any, for key: String) throws -> PropertyType {
     switch value {
     case let string as NSString:
       if options.detectUUID, UUID(uuidString: string as String) != nil {
@@ -140,7 +140,7 @@ extension ModelCodeGenerator {
     }
   }
 
-  private func propertyName(for type: ObjectType) -> String {
+  private func propertyName(for type: PropertyType.BaseType) -> String {
     switch type {
     case .bool:
       return "Bool"
@@ -191,7 +191,7 @@ extension ModelCodeGenerator {
     return structName
   }
 
-  private func writeStructCode(level: Int, meta: StructComponents) -> String {
+  private func writeStructCode(level: Int, meta: ModelStructInfo) -> String {
 
     var result = ""
 
@@ -215,7 +215,7 @@ extension ModelCodeGenerator {
       writeAccessControl()
       result.append(options.variable ? "var" : "let")
       result.append(" ")
-      result.append(property.transformedKey)
+      result.append(property.swiftName)
       result.append(": ")
       if property.property.isArray {
         result.append("[")
@@ -231,7 +231,7 @@ extension ModelCodeGenerator {
       writeNewLine()
 
       if case .custom(_, let nestedMeta) = property.property.type {
-        let fixedNestedMeta = StructComponents(name: propertyName(for: property.property.type), properties: nestedMeta.properties)
+        let fixedNestedMeta = ModelStructInfo(name: propertyName(for: property.property.type), properties: nestedMeta.properties)
         result.append(writeStructCode(level: level + 1, meta: fixedNestedMeta))
       }
     }
@@ -245,9 +245,9 @@ extension ModelCodeGenerator {
       meta.properties.forEach { property in
         writeIndent(count: level + 2)
         // TODO: original key escaped
-        result.append("case \(property.transformedKey)")
+        result.append("case \(property.swiftName)")
         if property.isKeyTransformed {
-          result.append(" = \"\(property.originalKey)\"")
+          result.append(" = \"\(property.originalName)\"")
         }
         writeNewLine()
       }

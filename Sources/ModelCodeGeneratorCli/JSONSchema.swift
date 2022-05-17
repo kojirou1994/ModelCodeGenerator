@@ -28,7 +28,7 @@ struct JSONSchema: ParsableCommand {
 
       precondition(root["type"]!.string! == "object")
 
-      func parseNormalType(_ value: JSONValue, rootObjectName: String) throws -> Property {
+      func parseNormalType(_ value: JSONValue, rootObjectName: String) throws -> PropertyType {
         let type = value["type"]!.string!
         switch type {
         case "array":
@@ -37,7 +37,7 @@ struct JSONSchema: ParsableCommand {
           let type = try parseNormalType(array, rootObjectName: rootObjectName)
           return .init(isArray: true, type: type.type)
         case "object":
-          return try .init(type: .custom(key: rootObjectName, code: StructComponents(name: rootObjectName, properties: parseObjectProperties(value))))
+          return try .init(type: .custom(key: rootObjectName, code: ModelStructInfo(name: rootObjectName, properties: parseObjectProperties(value))))
         case "integer":
           if preferUnsignedInteger, value["minimum"]?.int == 0 {
             return .init(type: .forcedName("UInt"))
@@ -52,18 +52,18 @@ struct JSONSchema: ParsableCommand {
         }
       }
 
-      func parseObjectProperties(_ value: JSONValue) throws -> [PropertyMeta] {
+      func parseObjectProperties(_ value: JSONValue) throws -> [PropertyInfo] {
         let additionalProperties = value["additionalProperties"]?.bool
         let object = value["properties"]!.object!
         let requiredProperties = value["required"]?.array!.map(\.string!) ?? []
         return try object.map { (key, value) in
           var property = try parseNormalType(value, rootObjectName: key.string!.uppercased())
           property.isOptional = !requiredProperties.contains(key.string!)
-          return .init(originalKey: key.string!, transformedKey: key.string!, isKeyTransformed: false, property: property)
+          return .init(originalName: key.string!, swiftName: key.string!, isKeyTransformed: false, property: property)
         }
       }
 
-      let meta = try StructComponents(name: "Model", properties: parseObjectProperties(root))
+      let meta = try ModelStructInfo(name: "Model", properties: parseObjectProperties(root))
 
       let code = try gen.generateCode(from: meta)
       try code.write(to: outputURL, atomically: true, encoding: .utf8)
