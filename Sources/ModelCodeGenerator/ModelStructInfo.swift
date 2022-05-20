@@ -18,7 +18,7 @@ public struct PropertyType {
     case bool
     case null
     case forcedName(String)
-    case custom(key: String, code: ModelStructInfo)
+    case customObject(ModelStructInfo)
 
     // MARK: Special types
     case uuid
@@ -26,16 +26,12 @@ public struct PropertyType {
 }
 
 public struct PropertyInfo {
-  public init(originalName: String, swiftName: String, isKeyTransformed: Bool, property: PropertyType) {
+  public init(originalName: String, property: PropertyType) {
     self.originalName = originalName
-    self.swiftName = swiftName
-    self.isKeyTransformed = isKeyTransformed
     self.property = property
   }
 
   public let originalName: String
-  public let swiftName: String
-  public let isKeyTransformed: Bool
   public let property: PropertyType
 }
 
@@ -45,6 +41,6 @@ public struct ModelStructInfo {
     self.properties = properties
   }
 
-  public let name: String
+  public var name: String
   public let properties: [PropertyInfo]
 }

@@ -2,14 +2,11 @@ import Foundation
 import ModelCodeGenerator
 import ArgumentParser
 
-let gen = ModelCodeGenerator(
-  options: .init(sortedProperty: true,
-                 variableNameStrategy: .convertFromSnakeCase,
-                 rootName: "Model", nestedObject: true, variable: true,
-                 indentation: .spaces(width: 2), accessControl: .internal,
-                 alwaysCodingKeys: true, conformingProtocols: ["Codable"]))
-
 struct JSONFile: ParsableCommand {
+
+  @OptionGroup
+  var writerOptions: CodeWriterOptions
+
   @Argument
   var inputs: [String]
 
@@ -23,7 +20,10 @@ struct JSONFile: ParsableCommand {
         .appendingPathComponent(inputFilename)
         .appendingPathExtension("swift")
 
-      let code = try gen.generateCode(from: Data(contentsOf: inputURL))
+      let parser = JSONModelParser(options: .init())
+      let info = try parser.parseModel(from: Data(contentsOf: inputURL))
+
+      let code = writerOptions.writer.generateCode(from: info)
       try code.write(to: outputURL, atomically: true, encoding: .utf8)
     }
   }

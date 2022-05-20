@@ -4,6 +4,10 @@ import ArgumentParser
 import JSON
 
 struct JSONSchema: ParsableCommand {
+
+  @OptionGroup
+  var writerOptions: CodeWriterOptions
+
   @Argument
   var inputs: [String]
 
@@ -37,7 +41,7 @@ struct JSONSchema: ParsableCommand {
           let type = try parseNormalType(array, rootObjectName: rootObjectName)
           return .init(isArray: true, type: type.type)
         case "object":
-          return try .init(type: .custom(key: rootObjectName, code: ModelStructInfo(name: rootObjectName, properties: parseObjectProperties(value))))
+          return try .init(type: .customObject(ModelStructInfo(name: rootObjectName, properties: parseObjectProperties(value))))
         case "integer":
           if preferUnsignedInteger, value["minimum"]?.int == 0 {
             return .init(type: .forcedName("UInt"))
@@ -53,19 +57,19 @@ struct JSONSchema: ParsableCommand {
       }
 
       func parseObjectProperties(_ value: JSONValue) throws -> [PropertyInfo] {
-        let additionalProperties = value["additionalProperties"]?.bool
+//        let additionalProperties = value["additionalProperties"]?.bool
         let object = value["properties"]!.object!
         let requiredProperties = value["required"]?.array!.map(\.string!) ?? []
         return try object.map { (key, value) in
           var property = try parseNormalType(value, rootObjectName: key.string!.uppercased())
           property.isOptional = !requiredProperties.contains(key.string!)
-          return .init(originalName: key.string!, swiftName: key.string!, isKeyTransformed: false, property: property)
+          return .init(originalName: key.string!, property: property)
         }
       }
 
       let meta = try ModelStructInfo(name: "Model", properties: parseObjectProperties(root))
 
-      let code = try gen.generateCode(from: meta)
+      let code = writerOptions.writer.generateCode(from: meta)
       try code.write(to: outputURL, atomically: true, encoding: .utf8)
     }
   }
