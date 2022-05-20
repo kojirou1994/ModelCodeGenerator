@@ -3,12 +3,8 @@ import XCTest
 
 final class ModelCodeGeneratorTests: XCTestCase {
   func testExample() throws {
-    let gen = ModelCodeGenerator(options: .init(sortedProperty: true,
-                                              variableNameStrategy: .convertFromSnakeCase,
-                                              rootName: "Model", nestedObject: true, variable: true,
-                                              indentation: .spaces(width: 2), accessControl: .internal,
-                                              alwaysCodingKeys: false, conformingProtocols: ["Codable"]))
-    let stru = try gen.parseStruct(name: "Root", value: [
+    let parser = JSONModelParser(options: .init(detectUUID: true))
+    let info = try parser.parseStruct(name: "Root", value: [
       "name": "Bob",
       "age": 10,
       "numbers": [
@@ -27,7 +23,9 @@ final class ModelCodeGeneratorTests: XCTestCase {
         ]
       ]
     ])
-    print(stru)
-    print(try gen.generateCode(from: stru))
+    print(info)
+
+    let writer = StructCodeWriter(options: .init(rootName: "Model", sortedProperty: true, nestedObject: true, variable: true, indentation: .spaces(width: 2), accessControl: .internal, alwaysCodingKeys: false, conformingProtocols: ["Codable"], variableNameStrategy: .camelFromSnakeCase, objectNameStrategy: .camelFromSnakeCase))
+    print(writer.generateCode(from: info))
   }
 }
