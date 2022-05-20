@@ -19,6 +19,7 @@ public struct PropertyType {
     case null
     case forcedName(String)
     case customObject(ModelStructInfo)
+    case stringEnum([String])
 
     // MARK: Special types
     case uuid
@@ -35,12 +36,7 @@ public struct PropertyInfo {
   public let property: PropertyType
 }
 
-public struct ModelStructInfo {
-  public init(name: String, properties: [PropertyInfo]) {
-    self.name = name
-    self.properties = properties
-  }
-
-  public var name: String
-  public let properties: [PropertyInfo]
+public enum ModelStructInfo {
+  case `struct`(properties: [PropertyInfo])
+  case `enum`(rawValueType: String, rawValues: [String])
 }

@@ -38,6 +38,6 @@ struct CodeWriterOptions: ParsableArguments {
   var objectNameStrategy: ObjectNameStrategy = .camelFromSnakeCase
 
   var writer: StructCodeWriter {
-    .init(options: .init(rootName: rootName, sortedProperty: sortedProperty, nestedObject: true, variable: variable, indentation: .spaces(width: 2), accessControl: accessControl, alwaysCodingKeys: alwaysCodingKeys, conformingProtocols: conformingProtocols, variableNameStrategy: variableNameStrategy, objectNameStrategy: objectNameStrategy))
+    .init(options: .init(rootName: rootName, sortedProperty: sortedProperty, nestedObject: true, variable: variable, indentation: .spaces(width: 2), accessControl: accessControl, alwaysCodingKeys: alwaysCodingKeys, conformingProtocols: conformingProtocols, variableNameStrategy: variableNameStrategy, objectNameStrategy: objectNameStrategy, dropObjectPluralSuffix: true))
   }
 }

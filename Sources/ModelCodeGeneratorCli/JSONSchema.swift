@@ -41,13 +41,20 @@ struct JSONSchema: ParsableCommand {
           let type = try parseNormalType(array, rootObjectName: rootObjectName)
           return .init(isArray: true, type: type.type)
         case "object":
-          return try .init(type: .customObject(ModelStructInfo(name: rootObjectName, properties: parseObjectProperties(value))))
+          return try .init(type: .customObject(ModelStructInfo.struct(properties: parseObjectProperties(value))))
         case "integer":
           if preferUnsignedInteger, value["minimum"]?.int == 0 {
             return .init(type: .forcedName("UInt"))
           }
           return .init(type: .integer)
         case "string":
+          if let enums = value["enum"] {
+            assert(enums.isArray)
+            if let enumArray = enums.array {
+              let values = enumArray.map(\.string!)
+              return .init(type: .stringEnum(values))
+            }
+          }
           return .init(type: .string)
         case "boolean":
           return .init(type: .bool)
@@ -67,7 +74,7 @@ struct JSONSchema: ParsableCommand {
         }
       }
 
-      let meta = try ModelStructInfo(name: writerOptions.rootName, properties: parseObjectProperties(root))
+      let meta = try ModelStructInfo.struct(properties: parseObjectProperties(root))
 
       let code = writerOptions.writer.generateCode(from: meta)
       try code.write(to: outputURL, atomically: true, encoding: .utf8)

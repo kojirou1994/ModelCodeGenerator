@@ -14,7 +14,7 @@ public struct JSONModelParser {
   public func parseModel(from data: Data) throws -> ModelStructInfo {
     try autoreleasepool {
       let json = try JSONSerialization.jsonObject(with: data, options: [])
-      return try parseStruct(name: "", value: json)
+      return try parseStruct(value: json)
     }
   }
 
@@ -37,7 +37,7 @@ enum ModelCodeGeneratorError: Error {
 
 extension JSONModelParser {
 
-  func parseStruct(name: String, value: Any) throws -> ModelStructInfo {
+  func parseStruct(value: Any) throws -> ModelStructInfo {
     var properties = [PropertyInfo]()
 
     func parse(dictionary: [String: Any]) throws {
@@ -51,7 +51,7 @@ extension JSONModelParser {
       try parse(dictionary: dic)
     } else if let array = value as? [Any] {
       if let firstElement = array.first {
-        return try parseStruct(name: name, value: firstElement)
+        return try parseStruct(value: firstElement)
       } else {
         throw ModelCodeGeneratorError.emptyArray
       }
@@ -60,7 +60,7 @@ extension JSONModelParser {
       throw ModelCodeGeneratorError.wrongRootType
     }
 
-    return .init(name: name, properties: properties)
+    return .struct(properties: properties)
 
   }
 
@@ -95,7 +95,7 @@ extension JSONModelParser {
       }
     default:
       assert(value is NSDictionary)
-      return try .init(type: .customObject(parseStruct(name: key, value: value)))
+      return try .init(type: .customObject(parseStruct(value: value)))
     }
   }
 

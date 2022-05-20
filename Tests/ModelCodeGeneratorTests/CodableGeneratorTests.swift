@@ -4,7 +4,7 @@ import XCTest
 final class ModelCodeGeneratorTests: XCTestCase {
   func testExample() throws {
     let parser = JSONModelParser(options: .init(detectUUID: true))
-    let info = try parser.parseStruct(name: "Root", value: [
+    let info = try parser.parseStruct(value: [
       "name": "Bob",
       "age": 10,
       "numbers": [
@@ -25,7 +25,7 @@ final class ModelCodeGeneratorTests: XCTestCase {
     ])
     print(info)
 
-    let writer = StructCodeWriter(options: .init(rootName: "Model", sortedProperty: true, nestedObject: true, variable: true, indentation: .spaces(width: 2), accessControl: .internal, alwaysCodingKeys: false, conformingProtocols: ["Codable"], variableNameStrategy: .camelFromSnakeCase, objectNameStrategy: .camelFromSnakeCase))
+    let writer = StructCodeWriter(options: .init(rootName: "Model", sortedProperty: true, nestedObject: true, variable: true, indentation: .spaces(width: 2), accessControl: .internal, alwaysCodingKeys: false, conformingProtocols: ["Codable"], variableNameStrategy: .camelFromSnakeCase, objectNameStrategy: .camelFromSnakeCase, dropObjectPluralSuffix: true))
     print(writer.generateCode(from: info))
   }
 }
