@@ -67,7 +67,7 @@ struct JSONSchema: ParsableCommand {
         }
       }
 
-      let meta = try ModelStructInfo(name: "Model", properties: parseObjectProperties(root))
+      let meta = try ModelStructInfo(name: writerOptions.rootName, properties: parseObjectProperties(root))
 
       let code = writerOptions.writer.generateCode(from: meta)
       try code.write(to: outputURL, atomically: true, encoding: .utf8)

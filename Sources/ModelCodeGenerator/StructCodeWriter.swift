@@ -65,7 +65,7 @@ extension StructCodeWriter {
 
     let properties = options.sortedProperty ? meta.properties.sorted(by: { $0.originalName < $1.originalName }) : meta.properties
 
-    var allCodingKeys = [(String, String)]()
+    var allCodingKeys = [(swiftName: String, originalName: String)]()
     var allNestedTypeNames = [String]()
 
     properties.forEach { property in
@@ -111,9 +111,9 @@ extension StructCodeWriter {
       allCodingKeys.forEach { key in
         writeIndent(count: level + 2)
         // TODO: original key escaped
-        result.append("case \(key.1)")
+        result.append("case \(key.swiftName)")
         if key.0 != key.1 {
-          result.append(" = \"\(key.0)\"")
+          result.append(" = \"\(key.originalName)\"")
         }
         writeNewLine()
       }
