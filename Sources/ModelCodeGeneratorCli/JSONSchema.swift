@@ -42,9 +42,9 @@ struct JSONSchema: ParsableCommand {
           let array = value["items"]!
           precondition(array.isObject)
           let type = try parseNormalType(array, rootObjectName: rootObjectName, isRequired: isRequired)
-          return .init(isArray: true, type: type.type)
+          return .init(isOptional: !isRequired, isArray: true, type: type.type)
         case "object":
-          return try .init(type: .customObject(ModelStructInfo.struct(properties: parseObjectProperties(value))))
+          baseType = try .customObject(ModelStructInfo.struct(properties: parseObjectProperties(value)))
         case "integer":
           if preferUnsignedInteger, value["minimum"]?.uint == 0 {
             baseType = .forcedName("UInt")
