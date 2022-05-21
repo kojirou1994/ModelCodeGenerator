@@ -60,9 +60,6 @@ struct JSONSchema: ParsableCommand {
               break
             }
           }
-          if minLength > 0 {
-            isRequired = true
-          }
           baseType = .string
         case "boolean":
           baseType = .bool
