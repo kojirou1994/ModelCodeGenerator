@@ -165,8 +165,10 @@ extension StructCodeWriter {
         writeIndent(count: level + 1)
         result.append("case ")
         writePropertyName(swiftName)
-        result.append(" = ")
-        result.append("\"\(rawValue)\"")
+        if swiftName != rawValue {
+          result.append(" = ")
+          result.append("\"\(rawValue)\"")
+        }
         writeNewLine()
       }
     }

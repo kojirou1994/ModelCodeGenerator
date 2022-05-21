@@ -32,45 +32,55 @@ struct JSONSchema: ParsableCommand {
 
       precondition(root["type"]!.string! == "object")
 
-      func parseNormalType(_ value: JSONValue, rootObjectName: String) throws -> PropertyType {
+      func parseNormalType(_ value: JSONValue, rootObjectName: String, isRequired: Bool) throws -> PropertyType {
         let type = value["type"]!.string!
+        var isRequired = isRequired
+        let minLength = value["minLength"]?.uint ?? 0
+        var baseType: PropertyType.BaseType = .null
         switch type {
         case "array":
           let array = value["items"]!
           precondition(array.isObject)
-          let type = try parseNormalType(array, rootObjectName: rootObjectName)
+          let type = try parseNormalType(array, rootObjectName: rootObjectName, isRequired: isRequired)
           return .init(isArray: true, type: type.type)
         case "object":
           return try .init(type: .customObject(ModelStructInfo.struct(properties: parseObjectProperties(value))))
         case "integer":
-          if preferUnsignedInteger, value["minimum"]?.int == 0 {
-            return .init(type: .forcedName("UInt"))
+          if preferUnsignedInteger, value["minimum"]?.uint == 0 {
+            baseType = .forcedName("UInt")
+            break
           }
-          return .init(type: .integer)
+          baseType = .integer
         case "string":
           if let enums = value["enum"] {
             assert(enums.isArray)
             if let enumArray = enums.array {
               let values = enumArray.map(\.string!)
-              return .init(type: .stringEnum(values))
+              baseType = .stringEnum(values)
+              break
             }
           }
-          return .init(type: .string)
+          if minLength > 0 {
+            isRequired = true
+          }
+          baseType = .string
         case "boolean":
-          return .init(type: .bool)
+          baseType = .bool
         default:
           fatalError("\(type) not supported")
         }
+
+        return .init(isOptional: !isRequired, type: baseType)
       }
 
       func parseObjectProperties(_ value: JSONValue) throws -> [PropertyInfo] {
 //        let additionalProperties = value["additionalProperties"]?.bool
         let object = value["properties"]!.object!
-        let requiredProperties = value["required"]?.array!.map(\.string!) ?? []
+        let requiredProperties = Set(value["required"]?.array!.map(\.string!) ?? [])
         return try object.map { (key, value) in
-          var property = try parseNormalType(value, rootObjectName: key.string!.uppercased())
-          property.isOptional = !requiredProperties.contains(key.string!)
-          return .init(originalName: key.string!, property: property)
+          let key = key.string!
+          let property = try parseNormalType(value, rootObjectName: key, isRequired: requiredProperties.contains(key))
+          return .init(originalName: key, property: property)
         }
       }
 
