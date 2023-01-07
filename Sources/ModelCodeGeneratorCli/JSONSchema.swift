@@ -24,8 +24,8 @@ struct JSONSchema: ParsableCommand {
         .appendingPathComponent(inputFilename)
         .appendingPathExtension("swift")
 
-      let json = try JSON.read(path: input)
-      let root = json.root
+      let json = try JSON.read(path: input).get()
+      let root = try json.root.unwrap("JSON no root")
       if let scheme = root["$schema"]?.string {
         print("scheme: \(scheme)")
       }
@@ -35,7 +35,7 @@ struct JSONSchema: ParsableCommand {
       func parseNormalType(_ value: JSONValue, rootObjectName: String, isRequired: Bool) throws -> PropertyType {
         let type = value["type"]!.string!
         var isRequired = isRequired
-        let minLength = value["minLength"]?.uint ?? 0
+        let minLength = value["minLength"]?.uint64 ?? 0
         var baseType: PropertyType.BaseType = .null
         switch type {
         case "array":
@@ -46,7 +46,7 @@ struct JSONSchema: ParsableCommand {
         case "object":
           baseType = try .customObject(ModelStructInfo.struct(properties: parseObjectProperties(value)))
         case "integer":
-          if preferUnsignedInteger, value["minimum"]?.uint == 0 {
+          if preferUnsignedInteger, value["minimum"]?.uint64 == 0 {
             baseType = .forcedName("UInt")
             break
           }
@@ -74,11 +74,14 @@ struct JSONSchema: ParsableCommand {
 //        let additionalProperties = value["additionalProperties"]?.bool
         let object = value["properties"]!.object!
         let requiredProperties = Set(value["required"]?.array!.map(\.string!) ?? [])
-        return try object.map { (key, value) in
+        var result = [PropertyInfo]()
+        var iterator = object.makeIterator()
+        while let (key, value) = iterator.nextKeyValue() {
           let key = key.string!
           let property = try parseNormalType(value, rootObjectName: key, isRequired: requiredProperties.contains(key))
-          return .init(originalName: key, property: property)
+          result.append(.init(originalName: key, property: property))
         }
+        return result
       }
 
       let meta = try ModelStructInfo.struct(properties: parseObjectProperties(root))

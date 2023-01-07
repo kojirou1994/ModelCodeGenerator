@@ -1,6 +1,24 @@
 {
   "pins" : [
     {
+      "identity" : "cutility",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kojirou1994/CUtility.git",
+      "state" : {
+        "revision" : "acd35be02969988c627a995681350e7d7507a6a1",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "kwift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kojirou1994/Kwift.git",
+      "state" : {
+        "revision" : "9261a1508b935fe574c2aff29ffc4bbca7a034e8",
+        "version" : "1.0.1"
+      }
+    },
+    {
       "identity" : "precondition",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kojirou1994/Precondition.git",
@@ -14,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
-        "revision" : "f3c9084a71ef4376f2fabbdf1d3d90a49f1fabdb",
-        "version" : "1.1.2"
+        "revision" : "fddd1c00396eed152c45a46bea9f47b98e59301d",
+        "version" : "1.2.0"
       }
     },
     {
@@ -23,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ibireme/yyjson.git",
       "state" : {
-        "revision" : "41069b2bcb628c7094dfe772a9cf7ca56b0c2075",
-        "version" : "0.4.0"
+        "revision" : "7b210d66cb73536f351e8a82a63508bc77bffd20",
+        "version" : "0.6.0"
       }
     },
     {
@@ -32,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/kojirou1994/YYJSONEncoder.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "82a98b65bfff01b1a8a77553fb8eb81d1f1a0d0d"
+        "revision" : "7be0fcc0a39bc91fe11efb7ff54a1909e673e704",
+        "version" : "0.1.1"
       }
     }
   ],

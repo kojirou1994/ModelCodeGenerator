@@ -1,3 +1,5 @@
+import KwiftUtility
+
 public struct StructCodeWriter {
   public init(options: StructCodeWriter.Options) {
     self.options = options
@@ -210,7 +212,7 @@ public enum VariableNameStrategy: String {
     let cleaned = string.filter { !$0.isSymbol || $0 == "_" }
 
     if self == .camelFromSnakeCase {
-      return cleaned.lowerCamelcased()
+      return SnakeCaseConvert.convertFromSnakeCase(cleaned)
     }
     if cleaned.isEmpty || cleaned.allSatisfy({$0.isSymbol}) {
       return "fixInvalidJSONKey"
@@ -234,7 +236,7 @@ extension StructCodeWriter.Options {
     case .uppercase:
       structName = string.uppercased()
     case .camelFromSnakeCase:
-      structName = string.upperCamelcased()
+      structName = SnakeCaseConvert.convertFromSnakeCase(string).firstUppercased()
     }
     if structName == string {
       structName = "_" + structName
